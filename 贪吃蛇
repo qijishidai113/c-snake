@@ -1,0 +1,171 @@
+/**********��ǽ̰����************/  
+/****     by  qijishidai      ****/
+
+#define _CRT_SECURE_NO_WARNINGS 1
+#undef UNICODE
+#undef _UNICODE
+
+#include<stdio.h>
+#include<graphics.h>
+#include<Windows.h>
+#include<time.h>
+#include<stdlib.h>
+
+#define WIN_WIDTH 1000 
+#define WIN_HEIGHT 600  //���泤�Ϳ�
+#define MAX_snake 100 //����󳤶�
+struct Snake_tlg//�ߵĽṹ��
+{
+	int num;//����
+	int dir;//����
+	int score;//�÷�
+	int size;//��С
+	POINT coor[MAX_snake];//�ߵ�λ������
+}snake;
+struct Food_tlg  //ʳ��Ľṹ��
+{
+	POINT fd;//ʳ�������
+	int flag; //�Ƿ��߳Ե�
+	DWORD color;   ///ʳ�����ɫ
+}food;
+enum DIR{UP,DOWN,LEFT,RIGHT};
+void GameInit()
+{
+	srand((unsigned int)time(NULL));
+	snake.num = 3;
+	snake.dir = RIGHT;//��ʼ��ͷ����
+	snake.score = 0;
+	snake.size = 10;
+	snake.coor[2].x = 0;
+	snake.coor[2].y = 0;
+	snake.coor[1].x = 0+snake.size;
+	snake.coor[1].y = 0;
+	snake.coor[0].x = 0 + 2 * snake.size;
+	snake.coor[0].x = 0;
+	//��ʼ��ʳ��λ��
+	food.fd.x = rand() % (WIN_WIDTH / 10) * 10;
+	food.fd.y = rand() % (WIN_HEIGHT / 10) * 10;
+	food.flag = 1;
+	food.color = RGB(rand() % 256, rand() % 256, rand() % 256);//���������ͬ��ɫ
+}
+void SnakeMove()
+{
+	int i;
+	for (i = snake.num - 1; i > 0;i--)//ÿһ���ߵ������ƶ���ǰһ������
+	{
+		snake.coor[i].x = snake.coor[i - 1].x;
+		snake.coor[i].y = snake.coor[i - 1].y;
+	}
+	switch (snake.dir)
+	{
+	case UP: snake.coor[0].y -= 10;
+		if (snake.coor[0].y + 10 <= 0)
+		{
+			snake.coor[0].y = WIN_HEIGHT;
+		}
+		break;
+	case DOWN: snake.coor[0].y += 10;
+		if (snake.coor[0].y >= WIN_HEIGHT)
+		{
+			snake.coor[0].y = 0;
+		}
+		break;
+	case LEFT:snake.coor[0].x -= 10;
+		if (snake.coor[0].x + 10 <= 0)
+		{
+			snake.coor[0].x = WIN_WIDTH;
+		}
+		break;
+	case RIGHT:snake.coor[0].x += 10;
+		if (snake.coor[0].x >= WIN_WIDTH)
+		{
+			snake.coor[0].x = 0;
+		}
+		break;
+	default:printf("�������������²���");
+		break;
+	}
+}
+void GameDraw()
+{
+	setbkcolor(RGB(105, 180, 141));
+	cleardevice();
+	//����
+	setfillcolor(BLUE);
+	int i;
+	for (i = 0; i < snake.num; i++)
+	{
+		setlinecolor(BLACK);
+		fillrectangle(snake.coor[i].x,
+			snake.coor[i].y,
+			snake.coor[i].x + snake.size,
+			snake.coor[i].y + snake.size);
+	}
+	//��ʳ��
+	if (food.flag == 1)
+	{
+		setfillcolor(food.color);
+		fillellipse(food.fd.x, food.fd.y, food.fd.x + 10, food.fd.y + 10);
+	}
+	//��ʾ����(*******&*��������
+	//char temp[20] = "";
+	//sprintf(temp,"������ %d"��snake.score);
+	//outtextxy(20, 20, temp);
+}
+void EatFood()
+{
+	if (snake.coor[0].x == food.fd.x && snake.coor[0].y == food.fd.y && food.flag == 1)
+	{
+		snake.num++;
+		food.flag = 0;
+	}
+	if (food.flag == 0)
+	{
+		food.fd.x = rand() % (WIN_WIDTH / 10) * 10;
+		food.fd.y = rand() % (WIN_HEIGHT / 10) * 10;
+		food.flag = 1;
+		food.color = RGB(rand() % 256, rand() % 256, rand() % 256);
+	}
+}
+void KeyControl()
+{
+	if (GetAsyncKeyState(VK_UP) && snake.dir != DOWN)
+		snake.dir = UP;
+	if (GetAsyncKeyState(VK_DOWN) && snake.dir != UP)
+		snake.dir = DOWN;
+	if (GetAsyncKeyState(VK_RIGHT) && snake.dir != LEFT)
+		snake.dir = RIGHT;
+	if (GetAsyncKeyState(VK_LEFT) && snake.dir != RIGHT)
+		snake.dir = LEFT;
+}
+void Donteatself()
+{
+	for (int i = 4; i < snake.num; i++)
+	{
+		if (snake.coor[0].x == snake.coor[i].x && snake.coor[0].y == snake.coor[i].y)
+		{
+			outtextxy(200, 200, "game over!");
+			getchar();
+			exit(666);
+		}
+	}
+}
+void main(void)
+{
+initgraph(WIN_WIDTH, WIN_HEIGHT, SHOWCONSOLE);//��ʼ��һ��ͼ�δ���
+printf("\twelcome! \n");
+printf("\tPlay game Rigth now! \n");
+GameInit();//��ʼ����Ϸ
+  while (1)
+{
+	SnakeMove();
+	GameDraw();
+	EatFood();
+	KeyControl();
+	Donteatself();
+	Sleep(50);
+}
+getchar();//��ֹ������Ϸ����һ������
+closegraph();
+}
+
